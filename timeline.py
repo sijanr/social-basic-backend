@@ -61,6 +61,7 @@ def getPublicTimeline(hug_postsdb):
     list = []
     for row in result:
         list.append(row)
+    print(hug_postsdb["posts"].last_rowid)
     return list
 
 @hug.post("/create_post", requires=checkUserAuthorization)
@@ -73,8 +74,10 @@ def createPost(username: hug.types.text, post_text: hug.types.text, hug_postsdb,
         "post": post_text,
         "timestamp": timeStamp
     }
-    if (kwargs["repost"]):
+    try:
         post["repost"] = "/posts/{}".format(kwargs["repost"])
+    except:
+        ""
     try:
         db.insert(post)
     except Exception as e:
