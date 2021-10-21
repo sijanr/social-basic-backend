@@ -1,11 +1,11 @@
 PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS posts(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT,
     post TEXT,
     timestamp TEXT,
-    repost TEXT,
-    PRIMARY KEY (username, timestamp)
+    repost TEXT
 );
 
 INSERT INTO posts (username, post, timestamp) VALUES(

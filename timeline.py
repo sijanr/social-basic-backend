@@ -64,7 +64,7 @@ def getPublicTimeline(hug_postsdb):
     return list
 
 @hug.post("/create_post", requires=checkUserAuthorization)
-def createPost(username: hug.types.text, post_text: hug.types.text, hug_postsdb, response):
+def createPost(username: hug.types.text, post_text: hug.types.text, hug_postsdb, response, **kwargs):
     db = hug_postsdb["posts"]
     date = datetime.datetime.now()
     timeStamp = str(date)[0:19]
@@ -73,9 +73,21 @@ def createPost(username: hug.types.text, post_text: hug.types.text, hug_postsdb,
         "post": post_text,
         "timestamp": timeStamp
     }
+    if (kwargs["repost"]):
+        post["repost"] = "/posts/{}".format(kwargs["repost"])
     try:
         db.insert(post)
     except Exception as e:
         response.status = hug.falcon.HTTP_409
         return {"error":str(e)}
     return {"status":"success"}
+
+@hug.get("/posts/{id}")
+def getPost(response, id: hug.types.number, hug_postsdb):
+    posts = []
+    try:
+        post = hug_postsdb["posts"].get(id)
+        posts.append(post)
+    except sqlite_utils.db.NotFoundError:
+        response.status = hug.falcon.HTTP_404
+    return {"post": posts}
