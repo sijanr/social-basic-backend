@@ -19,9 +19,11 @@ def postsdb(section="sqlite", key="postsdb", **kwargs):
 
 @hug.authentication.basic
 def checkUserAuthorization(username, password):
-    r = requests.get("http://localhost:8001/verifyUser", data={"username":str(username), "password":str(password)})
+    print(username)
+    print(password)
+    r = requests.get("http://localhost:8001/verifyUser", data={"username":str(username),"password":str(password)})
     print(r.text)
-    if "success" in r.text:
+    if "true" in r.text:
         return True
     else:
         return False
@@ -43,7 +45,7 @@ def getHomeTimeline(username:hug.types.text, hug_postsdb):
     return []
 
 
-@hug.get("/user_timeline/", requires=checkUserAuthorization)
+@hug.get("/user_timeline", requires=checkUserAuthorization)
 def getUserTimeline(username: hug.types.text, hug_postsdb):
     db = hug_postsdb
     result = db.query("SELECT * FROM posts WHERE username==\"{}\" ORDER BY timestamp DESC".format(str(username)))
@@ -61,7 +63,6 @@ def getPublicTimeline(hug_postsdb):
         list.append(row)
     return list
 
-# post - create
 @hug.post("/create_post", requires=checkUserAuthorization)
 def createPost(username: hug.types.text, post_text: hug.types.text, hug_postsdb, response):
     db = hug_postsdb["posts"]

@@ -14,15 +14,16 @@ def usersdb(section="sqlite", key="usersdb", **kwargs):
     dbfile = config[section][key]
     return sqlite_utils.Database(dbfile)
 
+@hug.authentication.basic
 @hug.get("/verifyUser")
 def isUserInTheDatabase(username, password, hug_usersdb):
-    db = usersdb()
     print("Username is ", str(username))
     print("Password is ", str(password))
+    db = usersdb()
     result = db.query("SELECT * FROM users WHERE username==\"{}\" AND password==\"{}\"".format(str(username), str(password)))
     for row in result:
-        return {"status":"success"}
-    return {"status":"failed"}
+        return True
+    return False
 
 @hug.post("/signup/", status = hug.falcon.HTTP_201)
 def createUser(
@@ -56,5 +57,21 @@ def getUserFollowing(username: hug.types.text, hug_usersdb):
     for row in result:
         list.append(row)
     return list
+
+@hug.post("/follow", status=hug.falcon.HTTP_201, requires=isUserInTheDatabase)
+def followUser(response, yourUsername: hug.types.text, followingUsername: hug.types.text, hug_usersdb):
+    followingdb = hug_usersdb["follows"]
+    user = {
+        "username": yourUsername,
+        "following": followingUsername
+    }
+    try:
+        followingdb.insert(user)
+    except Exception as e:
+        response.status = hug.falcon.HTTP_409
+        return {"success": "false", "error": str(e)}
+    return {"success":"true"}
+
+
 
 hug.API(__name__).http.serve(port=8001)
